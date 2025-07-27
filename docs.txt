@@ -1,0 +1,12 @@
+### Instruction given to AI:
+You're helping me build a hackathon-ready full-stack web project using React + Node.js + MongoDB.
+It solves the problem of connecting local food suppliers (like farmers or wholesalers) with both stall owners and normal buyers who want to buy fresh vegetables, grains, etc.
+Problem statement (not actual problem statement): "There is a disconnect between local food suppliers and both small business owners (e.g., food stalls, home kitchens) and everyday buyers. These buyers lack a platform to find, compare, and rate fresh local suppliers efficiently."
+
+### Mongo Atlas: cGvWA7AkIVKmb0Ui
+### Mongo Connection: mongodb+srv://Sutharsan:cGvWA7AkIVKmb0Ui@cluster0.1to2fxt.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+
+### 💡Try adding feature for customer support.
+### Analytics for sellers/suppliers.
+### Supplier ratings.
+### FINAL: Test vulnerability.
