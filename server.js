@@ -11,7 +11,18 @@ const path = require("path");
 app.use(express.static(path.join(__dirname, "public")));
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin:
+      process.env.NODE_ENV === "production"
+        ? [
+            "https://bazaar-buddy-zeta.vercel.app",
+            "https://bazaar-buddy.vercel.app/",
+          ]
+        : ["http://localhost:3000", "http://localhost:5000"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Serve index.html for the root route

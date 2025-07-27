@@ -1,5 +1,8 @@
 // API Configuration
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:5000/api"
+    : window.location.origin + "/api";
 
 // API Service Functions
 const apiService = {
@@ -181,9 +184,22 @@ const apiService = {
     return response.data;
   },
 
-  // Supplier APIs
-  getSuppliers: async (params = {}) => {
-    const response = await axios.get(`${API_BASE_URL}/suppliers`, { params });
+  // Wishlist APIs
+  getWishlist: async (token) => {
+    const response = await axios.get(`${API_BASE_URL}/wishlist`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  },
+
+  toggleWishlist: async (productId, token) => {
+    const response = await axios.post(
+      `${API_BASE_URL}/wishlist/toggle`,
+      { productId },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
     return response.data;
   },
 };
