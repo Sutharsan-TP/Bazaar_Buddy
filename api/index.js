@@ -1,5 +1,4 @@
 const express = require("express");
-const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
@@ -12,45 +11,103 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../public")));
 
-// MongoDB Connection
-const MONGODB_URI =
-  process.env.MONGODB_URI ||
-  "mongodb+srv://Sutharsan:cGvWA7AkIVKmb0Ui@cluster0.1to2fxt.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-
-mongoose
-  .connect(MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => {
-    console.log("✅ MongoDB connected successfully");
-  })
-  .catch((err) => {
-    console.error("❌ MongoDB connection error:", err.message);
-  });
-
-// Schemas
-const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: {
-    type: String,
-    enum: ["supplier", "stall_owner", "buyer"],
-    required: true,
+// Hardcoded users for demo
+const users = [
+  {
+    id: "1",
+    name: "John Supplier",
+    email: "supplier@demo.com",
+    password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // "password"
+    role: "supplier",
+    businessName: "Fresh Farms Co.",
+    businessType: "Organic Produce",
+    rating: 4.5,
+    totalRatings: 12,
   },
-  phone: String,
-  address: String,
-  businessName: String,
-  businessType: String,
-  profileImage: String,
-  isVerified: { type: Boolean, default: false },
-  rating: { type: Number, default: 0 },
-  totalRatings: { type: Number, default: 0 },
-  createdAt: { type: Date, default: Date.now },
-});
+  {
+    id: "2",
+    name: "Sarah Stall Owner",
+    email: "stall@demo.com",
+    password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // "password"
+    role: "stall_owner",
+    businessName: "Sarah's Food Stall",
+    businessType: "Street Food",
+    rating: 0,
+    totalRatings: 0,
+  },
+  {
+    id: "3",
+    name: "Mike Buyer",
+    email: "buyer@demo.com",
+    password: "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi", // "password"
+    role: "buyer",
+    businessName: "",
+    businessType: "",
+    rating: 0,
+    totalRatings: 0,
+  },
+];
 
-const User = mongoose.model("User", userSchema);
+// Demo products
+const products = [
+  {
+    id: "1",
+    name: "Fresh Tomatoes",
+    category: "Vegetables",
+    price: 2.5,
+    unit: "kg",
+    quantity: 100,
+    supplier: "1",
+    supplierName: "Fresh Farms Co.",
+    isAvailable: true,
+  },
+  {
+    id: "2",
+    name: "Organic Carrots",
+    category: "Vegetables",
+    price: 1.8,
+    unit: "kg",
+    quantity: 75,
+    supplier: "1",
+    supplierName: "Fresh Farms Co.",
+    isAvailable: true,
+  },
+  {
+    id: "3",
+    name: "Fresh Spinach",
+    category: "Leafy Greens",
+    price: 3.2,
+    unit: "kg",
+    quantity: 50,
+    supplier: "1",
+    supplierName: "Fresh Farms Co.",
+    isAvailable: true,
+  },
+];
+
+// Demo orders
+const orders = [
+  {
+    id: "1",
+    orderNumber: "ORD001",
+    buyer: "2",
+    supplier: "1",
+    items: [
+      {
+        product: "1",
+        name: "Fresh Tomatoes",
+        price: 2.5,
+        quantity: 5,
+        unit: "kg",
+        subtotal: 12.5,
+      },
+    ],
+    subtotal: 12.5,
+    totalAmount: 12.5,
+    status: "confirmed",
+    orderDate: new Date().toISOString(),
+  },
+];
 
 // JWT middleware
 const authenticateToken = (req, res, next) => {
@@ -73,68 +130,11 @@ const authenticateToken = (req, res, next) => {
 };
 
 // Auth Routes
-app.post("/api/register", async (req, res) => {
-  try {
-    const {
-      name,
-      email,
-      password,
-      role,
-      phone,
-      address,
-      businessName,
-      businessType,
-    } = req.body;
-
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = new User({
-      name,
-      email,
-      password: hashedPassword,
-      role,
-      phone,
-      address,
-      businessName,
-      businessType,
-    });
-
-    await user.save();
-
-    const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
-      process.env.JWT_SECRET || "your-secret-key",
-      { expiresIn: "24h" }
-    );
-
-    res.status(201).json({
-      message: "User created successfully",
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        businessName: user.businessName,
-        businessType: user.businessType,
-      },
-    });
-  } catch (error) {
-    console.error("Registration error:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-});
-
 app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = users.find((u) => u.email === email);
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -145,7 +145,7 @@ app.post("/api/login", async (req, res) => {
     }
 
     const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
+      { userId: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET || "your-secret-key",
       { expiresIn: "24h" }
     );
@@ -153,7 +153,7 @@ app.post("/api/login", async (req, res) => {
     res.json({
       token,
       user: {
-        id: user._id,
+        id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -168,14 +168,59 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
+// Product Routes
+app.get("/api/products", (req, res) => {
+  res.json({ products });
+});
+
+app.get("/api/products/my", authenticateToken, (req, res) => {
+  const userProducts = products.filter((p) => p.supplier === req.user.userId);
+  res.json(userProducts);
+});
+
+// Supplier Routes
+app.get("/api/suppliers", (req, res) => {
+  const suppliers = users
+    .filter((u) => u.role === "supplier")
+    .map((u) => ({
+      id: u.id,
+      name: u.name,
+      businessName: u.businessName,
+      businessType: u.businessType,
+      rating: u.rating,
+      totalRatings: u.totalRatings,
+      address: "Demo Address",
+      phone: "+1234567890",
+      createdAt: new Date().toISOString(),
+    }));
+
+  res.json({ suppliers });
+});
+
+// Order Routes
+app.get("/api/orders/my", authenticateToken, (req, res) => {
+  const userOrders = orders.filter(
+    (o) => o.buyer === req.user.userId || o.supplier === req.user.userId
+  );
+  res.json({ orders: userOrders });
+});
+
+// Cart Routes
+app.get("/api/cart", authenticateToken, (req, res) => {
+  res.json({ items: [] });
+});
+
+app.post("/api/cart/add", authenticateToken, (req, res) => {
+  res.json({ message: "Item added to cart" });
+});
+
 // Health check endpoint
 app.get("/api/health", (req, res) => {
   res.json({
     status: "OK",
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || "development",
-    mongodb:
-      mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+    message: "Demo mode - no database required",
   });
 });
 

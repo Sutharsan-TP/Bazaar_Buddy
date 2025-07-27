@@ -2018,7 +2018,6 @@ const Login = ({ onLogin }) => {
     name: "",
     email: "",
     password: "",
-    confirmPassword: "",
     role: "stall_owner",
     phone: "",
     address: "",
@@ -2033,7 +2032,6 @@ const Login = ({ onLogin }) => {
       name: "",
       email: "",
       password: "",
-      confirmPassword: "",
       role: "stall_owner",
       phone: "",
       address: "",
@@ -2055,51 +2053,14 @@ const Login = ({ onLogin }) => {
 
     try {
       if (isLogin) {
-        // Login logic
         const response = await apiService.login({
           email: formData.email,
           password: formData.password,
         });
         onLogin(response.user, response.token);
-      } else {
-        // Registration logic
-        if (formData.password !== formData.confirmPassword) {
-          setError("Passwords do not match");
-          setLoading(false);
-          return;
-        }
-
-        if (formData.password.length < 6) {
-          setError("Password must be at least 6 characters long");
-          setLoading(false);
-          return;
-        }
-
-        const registrationData = {
-          name: formData.name,
-          email: formData.email,
-          password: formData.password,
-          role: formData.role,
-          phone: formData.phone,
-          address: formData.address,
-        };
-
-        // Add business fields for suppliers
-        if (formData.role === "supplier") {
-          registrationData.businessName = formData.businessName;
-          registrationData.businessType = formData.businessType;
-        }
-
-        const response = await apiService.register(registrationData);
-        onLogin(response.user, response.token);
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          (isLogin
-            ? "Login failed. Please try again."
-            : "Registration failed. Please try again.")
-      );
+      setError(err.response?.data?.message || "An error occurred");
     } finally {
       setLoading(false);
     }
@@ -2112,474 +2073,150 @@ const Login = ({ onLogin }) => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background:
-          "linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%)",
+        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
         padding: "20px",
       }}
     >
       <div
         style={{
-          background: "var(--bg-white)",
-          borderRadius: "16px",
+          background: "white",
+          borderRadius: "20px",
           padding: "40px",
           boxShadow: "0 20px 40px rgba(0,0,0,0.1)",
-          maxWidth: isLogin ? "420px" : "600px",
           width: "100%",
-          maxHeight: "90vh",
-          overflowY: "auto",
+          maxWidth: "400px",
         }}
       >
         <div style={{ textAlign: "center", marginBottom: "30px" }}>
-          <div style={{ fontSize: "32px", marginBottom: "10px" }}>🥬</div>
-          <h2
-            style={{ fontSize: "24px", fontWeight: "700", marginBottom: "8px" }}
-          >
-            {isLogin ? "Welcome Back" : "Join Bazaar Buddy"}
-          </h2>
-          <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>
-            {isLogin
-              ? "Sign in to your account"
-              : "Create your account to get started"}
+          <h1 style={{ color: "var(--primary-color)", marginBottom: "10px" }}>
+            🥬 BazaarBuddy
+          </h1>
+          <p style={{ color: "var(--text-secondary)" }}>
+            Fresh Local Marketplace
           </p>
         </div>
 
-        {error && (
-          <div
-            style={{
-              background: "var(--error-color)",
-              color: "white",
-              padding: "12px",
-              borderRadius: "8px",
-              marginBottom: "20px",
-              fontSize: "14px",
-            }}
-          >
-            {error}
+        {/* Demo Credentials */}
+        <div
+          style={{
+            background: "#f0f9ff",
+            border: "1px solid #0ea5e9",
+            borderRadius: "8px",
+            padding: "15px",
+            marginBottom: "20px",
+          }}
+        >
+          <h4 style={{ margin: "0 0 10px 0", color: "#0c4a6e" }}>
+            Demo Credentials:
+          </h4>
+          <div style={{ fontSize: "14px", lineHeight: "1.5" }}>
+            <p>
+              <strong>Supplier:</strong> supplier@demo.com / password
+            </p>
+            <p>
+              <strong>Stall Owner:</strong> stall@demo.com / password
+            </p>
+            <p>
+              <strong>Buyer:</strong> buyer@demo.com / password
+            </p>
           </div>
-        )}
+        </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Registration-only fields */}
-          {!isLogin && (
-            <>
-              <div style={{ marginBottom: "20px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "6px",
-                    fontWeight: "500",
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    border: "1px solid var(--border-color)",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                  }}
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  required
-                  placeholder="Enter your full name"
-                  disabled={loading}
-                />
-              </div>
-
-              <div style={{ marginBottom: "20px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "6px",
-                    fontWeight: "500",
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  I am a *
-                </label>
-                <select
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    border: "1px solid var(--border-color)",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    background: "white",
-                  }}
-                  value={formData.role}
-                  onChange={(e) =>
-                    setFormData({ ...formData, role: e.target.value })
-                  }
-                  disabled={loading}
-                >
-                  <option value="stall_owner">🏪 Stall Owner (Buyer)</option>
-                  <option value="supplier">
-                    🌾 Supplier (Farmer/Wholesaler)
-                  </option>
-                </select>
-                <p
-                  style={{
-                    fontSize: "12px",
-                    color: "var(--text-secondary)",
-                    marginTop: "4px",
-                  }}
-                >
-                  {formData.role === "stall_owner"
-                    ? "I want to buy fresh products for my business"
-                    : "I want to sell my products to local businesses"}
-                </p>
-              </div>
-
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "15px",
-                  marginBottom: "20px",
-                }}
-              >
-                <div>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "6px",
-                      fontWeight: "500",
-                      color: "var(--text-primary)",
-                    }}
-                  >
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      border: "1px solid var(--border-color)",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                    }}
-                    value={formData.phone}
-                    onChange={(e) =>
-                      setFormData({ ...formData, phone: e.target.value })
-                    }
-                    placeholder="Enter phone number"
-                    disabled={loading}
-                  />
-                </div>
-
-                {formData.role === "supplier" && (
-                  <div>
-                    <label
-                      style={{
-                        display: "block",
-                        marginBottom: "6px",
-                        fontWeight: "500",
-                        color: "var(--text-primary)",
-                      }}
-                    >
-                      Business Type
-                    </label>
-                    <select
-                      style={{
-                        width: "100%",
-                        padding: "12px",
-                        border: "1px solid var(--border-color)",
-                        borderRadius: "8px",
-                        fontSize: "14px",
-                        background: "white",
-                      }}
-                      value={formData.businessType}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          businessType: e.target.value,
-                        })
-                      }
-                      disabled={loading}
-                    >
-                      <option value="">Select type</option>
-                      <option value="farm">🌾 Farm</option>
-                      <option value="wholesale">🏪 Wholesale</option>
-                      <option value="organic">🌱 Organic Producer</option>
-                      <option value="cooperative">🤝 Cooperative</option>
-                    </select>
-                  </div>
-                )}
-              </div>
-
-              {formData.role === "supplier" && (
-                <div style={{ marginBottom: "20px" }}>
-                  <label
-                    style={{
-                      display: "block",
-                      marginBottom: "6px",
-                      fontWeight: "500",
-                      color: "var(--text-primary)",
-                    }}
-                  >
-                    Business Name *
-                  </label>
-                  <input
-                    type="text"
-                    style={{
-                      width: "100%",
-                      padding: "12px",
-                      border: "1px solid var(--border-color)",
-                      borderRadius: "8px",
-                      fontSize: "14px",
-                    }}
-                    value={formData.businessName}
-                    onChange={(e) =>
-                      setFormData({ ...formData, businessName: e.target.value })
-                    }
-                    required={formData.role === "supplier"}
-                    placeholder="Enter your business/farm name"
-                    disabled={loading}
-                  />
-                </div>
-              )}
-
-              <div style={{ marginBottom: "20px" }}>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "6px",
-                    fontWeight: "500",
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  Address {formData.role === "supplier" ? "*" : ""}
-                </label>
-                <textarea
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    border: "1px solid var(--border-color)",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    minHeight: "80px",
-                    resize: "vertical",
-                  }}
-                  value={formData.address}
-                  onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
-                  }
-                  required={formData.role === "supplier"}
-                  placeholder={
-                    formData.role === "supplier"
-                      ? "Enter your business address (used for location-based searches)"
-                      : "Enter your address (optional)"
-                  }
-                  disabled={loading}
-                  rows="3"
-                />
-                {formData.role === "supplier" && (
-                  <p
-                    style={{
-                      fontSize: "12px",
-                      color: "var(--text-secondary)",
-                      marginTop: "4px",
-                    }}
-                  >
-                    📍 This helps customers find suppliers near them
-                  </p>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* Common fields */}
           <div style={{ marginBottom: "20px" }}>
             <label
               style={{
                 display: "block",
-                marginBottom: "6px",
+                marginBottom: "8px",
                 fontWeight: "500",
-                color: "var(--text-primary)",
               }}
             >
-              Email Address *
+              Email
             </label>
             <input
               type="email"
-              style={{
-                width: "100%",
-                padding: "12px",
-                border: "1px solid var(--border-color)",
-                borderRadius: "8px",
-                fontSize: "14px",
-              }}
               value={formData.email}
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
               required
-              placeholder="Enter your email"
-              disabled={loading}
+              style={{
+                width: "100%",
+                padding: "12px",
+                border: "2px solid var(--border-color)",
+                borderRadius: "8px",
+                fontSize: "14px",
+              }}
             />
           </div>
 
-          <div
-            style={{
-              display: isLogin ? "block" : "grid",
-              gridTemplateColumns: isLogin ? "1fr" : "1fr 1fr",
-              gap: "15px",
-              marginBottom: "20px",
-            }}
-          >
-            <div>
-              <label
-                style={{
-                  display: "block",
-                  marginBottom: "6px",
-                  fontWeight: "500",
-                  color: "var(--text-primary)",
-                }}
-              >
-                Password *
-              </label>
-              <input
-                type="password"
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  border: "1px solid var(--border-color)",
-                  borderRadius: "8px",
-                  fontSize: "14px",
-                }}
-                value={formData.password}
-                onChange={(e) =>
-                  setFormData({ ...formData, password: e.target.value })
-                }
-                required
-                placeholder="Enter your password"
-                disabled={loading}
-                minLength={isLogin ? undefined : 6}
-              />
-            </div>
-
-            {!isLogin && (
-              <div>
-                <label
-                  style={{
-                    display: "block",
-                    marginBottom: "6px",
-                    fontWeight: "500",
-                    color: "var(--text-primary)",
-                  }}
-                >
-                  Confirm Password *
-                </label>
-                <input
-                  type="password"
-                  style={{
-                    width: "100%",
-                    padding: "12px",
-                    border: "1px solid var(--border-color)",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                  }}
-                  value={formData.confirmPassword}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      confirmPassword: e.target.value,
-                    })
-                  }
-                  required
-                  placeholder="Confirm your password"
-                  disabled={loading}
-                  minLength={6}
-                />
-              </div>
-            )}
-          </div>
-
-          {!isLogin && (
-            <div
+          <div style={{ marginBottom: "20px" }}>
+            <label
               style={{
-                background: "var(--bg-light)",
-                padding: "15px",
-                borderRadius: "8px",
-                marginBottom: "20px",
-                fontSize: "13px",
-                color: "var(--text-secondary)",
+                display: "block",
+                marginBottom: "8px",
+                fontWeight: "500",
               }}
             >
-              <p
-                style={{
-                  margin: "0 0 8px 0",
-                  fontWeight: "500",
-                  color: "var(--text-primary)",
-                }}
-              >
-                📋 Account Requirements:
-              </p>
-              <ul style={{ margin: 0, paddingLeft: "20px" }}>
-                <li>Password must be at least 6 characters</li>
-                <li>Valid email address required</li>
-                {formData.role === "supplier" && (
-                  <>
-                    <li>Business name and address required for suppliers</li>
-                    <li>Address used for location-based customer searches</li>
-                  </>
-                )}
-              </ul>
+              Password
+            </label>
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) =>
+                setFormData({ ...formData, password: e.target.value })
+              }
+              required
+              style={{
+                width: "100%",
+                padding: "12px",
+                border: "2px solid var(--border-color)",
+                borderRadius: "8px",
+                fontSize: "14px",
+              }}
+            />
+          </div>
+
+          {error && (
+            <div
+              style={{
+                background: "var(--error-color)",
+                color: "white",
+                padding: "12px",
+                borderRadius: "8px",
+                marginBottom: "20px",
+                fontSize: "14px",
+              }}
+            >
+              {error}
             </div>
           )}
 
           <button
             type="submit"
-            className="btn btn-primary"
-            style={{ width: "100%" }}
             disabled={loading}
+            style={{
+              width: "100%",
+              padding: "14px",
+              background: "var(--primary-color)",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              fontSize: "16px",
+              fontWeight: "600",
+              cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading ? 0.7 : 1,
+            }}
           >
-            {loading
-              ? isLogin
-                ? "Signing In..."
-                : "Creating Account..."
-              : isLogin
-              ? "Sign In"
-              : "Create Account"}
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
-        <div
-          style={{ textAlign: "center", marginTop: "20px", fontSize: "14px" }}
-        >
-          {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-          <span
-            style={{
-              color: "var(--primary-color)",
-              cursor: "pointer",
-              fontWeight: "500",
-            }}
-            onClick={toggleMode}
-          >
-            {isLogin ? "Register here" : "Sign in here"}
-          </span>
+        <div style={{ textAlign: "center", marginTop: "20px" }}>
+          <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>
+            Demo Mode - Use the credentials above to test different user roles
+          </p>
         </div>
-
-        {!isLogin && (
-          <div
-            style={{
-              textAlign: "center",
-              marginTop: "15px",
-              fontSize: "12px",
-              color: "var(--text-secondary)",
-              lineHeight: "1.4",
-            }}
-          >
-            By creating an account, you agree to our Terms of Service and
-            Privacy Policy.
-          </div>
-        )}
       </div>
     </div>
   );
