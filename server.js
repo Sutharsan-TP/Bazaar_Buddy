@@ -8,7 +8,13 @@ const config = require("./config");
 
 const app = express();
 const path = require("path");
+// Serve static files
 app.use(express.static(path.join(__dirname, "public")));
+
+// Root route - serve the React app
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 // Middleware
 app.use(
@@ -24,11 +30,6 @@ app.use(
   })
 );
 app.use(express.json());
-
-// Serve index.html for the root route
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
 
 // MongoDB Connection
 console.log("🔍 Environment check:");
