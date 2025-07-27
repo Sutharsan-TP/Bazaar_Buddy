@@ -11,8 +11,11 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "../public")));
 
-// Hardcoded users for demo
-const users = [
+// Check if we're on Vercel (production) or localhost
+const isVercel = process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+
+// Hardcoded users for Vercel demo
+const demoUsers = [
   {
     id: "1",
     name: "John Supplier",
@@ -48,8 +51,8 @@ const users = [
   },
 ];
 
-// Demo products
-const products = [
+// Demo products for Vercel
+const demoProducts = [
   {
     id: "1",
     name: "Fresh Tomatoes",
@@ -85,8 +88,8 @@ const products = [
   },
 ];
 
-// Demo orders
-const orders = [
+// Demo orders for Vercel
+const demoOrders = [
   {
     id: "1",
     orderNumber: "ORD001",
@@ -134,34 +137,42 @@ app.post("/api/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = users.find((u) => u.email === email);
-    if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" });
+    if (isVercel) {
+      // Use demo data for Vercel
+      const user = demoUsers.find((u) => u.email === email);
+      if (!user) {
+        return res.status(400).json({ message: "Invalid credentials" });
+      }
+
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({ message: "Invalid credentials" });
+      }
+
+      const token = jwt.sign(
+        { userId: user.id, email: user.email, role: user.role },
+        process.env.JWT_SECRET || "your-secret-key",
+        { expiresIn: "24h" }
+      );
+
+      res.json({
+        token,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          businessName: user.businessName,
+          businessType: user.businessType,
+          rating: user.rating,
+        },
+      });
+    } else {
+      // For localhost, redirect to original server
+      res.status(400).json({ 
+        message: "Please use localhost:5000 for full functionality with MongoDB" 
+      });
     }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" });
-    }
-
-    const token = jwt.sign(
-      { userId: user.id, email: user.email, role: user.role },
-      process.env.JWT_SECRET || "your-secret-key",
-      { expiresIn: "24h" }
-    );
-
-    res.json({
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        businessName: user.businessName,
-        businessType: user.businessType,
-        rating: user.rating,
-      },
-    });
   } catch (error) {
     console.error("Login error:", error);
     res.status(500).json({ message: "Server error", error: error.message });
@@ -170,48 +181,84 @@ app.post("/api/login", async (req, res) => {
 
 // Product Routes
 app.get("/api/products", (req, res) => {
-  res.json({ products });
+  if (isVercel) {
+    res.json({ products: demoProducts });
+  } else {
+    res.status(400).json({ 
+      message: "Please use localhost:5000 for full functionality with MongoDB" 
+    });
+  }
 });
 
 app.get("/api/products/my", authenticateToken, (req, res) => {
-  const userProducts = products.filter((p) => p.supplier === req.user.userId);
-  res.json(userProducts);
+  if (isVercel) {
+    const userProducts = demoProducts.filter((p) => p.supplier === req.user.userId);
+    res.json(userProducts);
+  } else {
+    res.status(400).json({ 
+      message: "Please use localhost:5000 for full functionality with MongoDB" 
+    });
+  }
 });
 
 // Supplier Routes
 app.get("/api/suppliers", (req, res) => {
-  const suppliers = users
-    .filter((u) => u.role === "supplier")
-    .map((u) => ({
-      id: u.id,
-      name: u.name,
-      businessName: u.businessName,
-      businessType: u.businessType,
-      rating: u.rating,
-      totalRatings: u.totalRatings,
-      address: "Demo Address",
-      phone: "+1234567890",
-      createdAt: new Date().toISOString(),
-    }));
+  if (isVercel) {
+    const suppliers = demoUsers
+      .filter((u) => u.role === "supplier")
+      .map((u) => ({
+        id: u.id,
+        name: u.name,
+        businessName: u.businessName,
+        businessType: u.businessType,
+        rating: u.rating,
+        totalRatings: u.totalRatings,
+        address: "Demo Address",
+        phone: "+1234567890",
+        createdAt: new Date().toISOString(),
+      }));
 
-  res.json({ suppliers });
+    res.json({ suppliers });
+  } else {
+    res.status(400).json({ 
+      message: "Please use localhost:5000 for full functionality with MongoDB" 
+    });
+  }
 });
 
 // Order Routes
 app.get("/api/orders/my", authenticateToken, (req, res) => {
-  const userOrders = orders.filter(
-    (o) => o.buyer === req.user.userId || o.supplier === req.user.userId
-  );
-  res.json({ orders: userOrders });
+  if (isVercel) {
+    const userOrders = demoOrders.filter(
+      (o) => o.buyer === req.user.userId || o.supplier === req.user.userId
+    );
+    res.json({ orders: userOrders });
+  } else {
+    res.status(400).json({ 
+      message: "Please use localhost:5000 for full functionality with MongoDB" 
+    });
+  }
 });
 
 // Cart Routes
 app.get("/api/cart", authenticateToken, (req, res) => {
-  res.json({ items: [] });
+  if (isVercel) {
+    res.json({ items: [] });
+  } else {
+    res.status(400).json({ 
+      message: "Please use localhost:5000 for full functionality with MongoDB" 
+    });
+  }
 });
 
 app.post("/api/cart/add", authenticateToken, (req, res) => {
-  res.json({ message: "Item added to cart" });
+  if (isVercel) {
+    res.json({ message: "Item added to cart" });
+  } else {
+    res.status(400).json({ 
+      message: "Please use localhost:5000 for full functionality with MongoDB" 
+    });
+  }
 });
 
 // Health check endpoint
@@ -220,7 +267,12 @@ app.get("/api/health", (req, res) => {
     status: "OK",
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || "development",
-    message: "Demo mode - no database required",
+    message: isVercel ? "Demo mode - use demo credentials" : "Localhost mode - use MongoDB",
+    demoCredentials: isVercel ? {
+      supplier: "supplier@demo.com / password",
+      stallOwner: "stall@demo.com / password", 
+      buyer: "buyer@demo.com / password"
+    } : null
   });
 });
 

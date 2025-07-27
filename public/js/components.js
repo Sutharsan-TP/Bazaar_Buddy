@@ -2027,6 +2027,9 @@ const Login = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Check if we're on Vercel or localhost
+  const isVercel = window.location.hostname !== 'localhost';
+
   const resetForm = () => {
     setFormData({
       name: "",
@@ -2096,41 +2099,41 @@ const Login = ({ onLogin }) => {
           </p>
         </div>
 
-        {/* Demo Credentials */}
-        <div
-          style={{
-            background: "#f0f9ff",
-            border: "1px solid #0ea5e9",
-            borderRadius: "8px",
-            padding: "15px",
-            marginBottom: "20px",
-          }}
-        >
-          <h4 style={{ margin: "0 0 10px 0", color: "#0c4a6e" }}>
-            Demo Credentials:
-          </h4>
-          <div style={{ fontSize: "14px", lineHeight: "1.5" }}>
-            <p>
-              <strong>Supplier:</strong> supplier@demo.com / password
-            </p>
-            <p>
-              <strong>Stall Owner:</strong> stall@demo.com / password
-            </p>
-            <p>
-              <strong>Buyer:</strong> buyer@demo.com / password
-            </p>
+        {/* Environment-specific message */}
+        {isVercel ? (
+          <div style={{ 
+            background: "#f0f9ff", 
+            border: "1px solid #0ea5e9", 
+            borderRadius: "8px", 
+            padding: "15px", 
+            marginBottom: "20px" 
+          }}>
+            <h4 style={{ margin: "0 0 10px 0", color: "#0c4a6e" }}>Demo Mode - Vercel Deployment</h4>
+            <div style={{ fontSize: "14px", lineHeight: "1.5" }}>
+              <p><strong>Supplier:</strong> supplier@demo.com / password</p>
+              <p><strong>Stall Owner:</strong> stall@demo.com / password</p>
+              <p><strong>Buyer:</strong> buyer@demo.com / password</p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div style={{ 
+            background: "#fef3c7", 
+            border: "1px solid #f59e0b", 
+            borderRadius: "8px", 
+            padding: "15px", 
+            marginBottom: "20px" 
+          }}>
+            <h4 style={{ margin: "0 0 10px 0", color: "#92400e" }}>Localhost Mode - Full MongoDB</h4>
+            <div style={{ fontSize: "14px", lineHeight: "1.5" }}>
+              <p>Use <strong>localhost:5000</strong> for full functionality with MongoDB database.</p>
+              <p>Register new accounts or use existing ones.</p>
+            </div>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "20px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "8px",
-                fontWeight: "500",
-              }}
-            >
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500" }}>
               Email
             </label>
             <input
@@ -2151,13 +2154,7 @@ const Login = ({ onLogin }) => {
           </div>
 
           <div style={{ marginBottom: "20px" }}>
-            <label
-              style={{
-                display: "block",
-                marginBottom: "8px",
-                fontWeight: "500",
-              }}
-            >
+            <label style={{ display: "block", marginBottom: "8px", fontWeight: "500" }}>
               Password
             </label>
             <input
@@ -2214,7 +2211,10 @@ const Login = ({ onLogin }) => {
 
         <div style={{ textAlign: "center", marginTop: "20px" }}>
           <p style={{ color: "var(--text-secondary)", fontSize: "14px" }}>
-            Demo Mode - Use the credentials above to test different user roles
+            {isVercel 
+              ? "Demo Mode - Use the credentials above to test different user roles"
+              : "Localhost Mode - Full functionality with MongoDB database"
+            }
           </p>
         </div>
       </div>
