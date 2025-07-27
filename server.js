@@ -31,6 +31,11 @@ app.get("/", (req, res) => {
 });
 
 // MongoDB Connection
+console.log("🔍 Environment check:");
+console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("MONGODB_URI exists:", !!process.env.MONGODB_URI);
+console.log("MONGODB_URI from config:", !!config.MONGODB_URI);
+
 mongoose
   .connect(config.MONGODB_URI, {
     useNewUrlParser: true,
